@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\author{
+    Evan Dreher \\
+    \and
+    Micah Nicodemus
+}
+
+\title{Artificial Intelligence Project 1 Proposal}
+\date{February 2024}
+
+\begin{document}
+\maketitle
+
+\section{The Problem}
+\par The problem is to solve the "Flood-it" game (https://unixpapa.com/floodit/). The game is played as follows
+\begin{itemize}
+    \item The goal is to get the whole board to be one color in the minimum number of moves
+    \item You perform a ``move'' by selecting a color.
+    \item When you select a color $c$, the top left vertex $v$ is recolored to $c$, and all vertices adjacent to $v$ of the same color are merged into $v$. 
+\end{itemize}
+
+\section{Instance Generation}
+\par We will get instances of the problem by randomly generating a 2D grid of integers representing colors. We will then algorithmically convert that 2D grid into a graph as an instance.
+
+\section{Algorithms}
+\par tentative
+
+\section{Experimentation}
+\par For experimentation we will vary the total number of nodes, board shape (approximately square boards, vs boards where one dimension is significantly larger), the number of colors, and the ability to recolor any vertex on the graph rather than just the top left one.
+
+\section{Performance Metrics}
+\par runtime, percent of instances where it found a solution, more stuff here
+
+\end{document}

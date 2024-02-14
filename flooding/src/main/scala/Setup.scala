@@ -35,7 +35,22 @@ def pre_graph_from_file(name: String): Seq[Seq[Int]] = {
  * @return A labelled graph corrsesponding to the input pre_graph
  */
 def graphify_pre_graph(pre_graph: Seq[Seq[Int]]): Graph = {
-  Graph(0 until 1, List()) // TODO: implement
+  val (rows, cols) = (pre_graph.length, pre_graph.head.length)
+  val flat = pre_graph.flatten
+  def get_edges(index: Int): List[(Int, Int)] = {
+    val lastRow = index >= (rows * cols) - cols
+    val lastCol = index % cols == (cols - 1)
+
+    (lastCol, lastRow) match
+      case (true, true) => List()
+      case (true, false) => List((index, index + cols))
+      case (false, true) => List((index, index + 1))
+      case _ => List((index, index + cols), (index, index + 1))
+  }
+  val vertices = flat.indices
+  val g: Graph = Graph(vertices, (vertices flatMap get_edges).toList)
+  vertices.foreach(i => g.labels(i) = flat(i))
+  g
 }
 
 /**
@@ -50,4 +65,11 @@ def send_graph_to_shadow_realm(name: String, pre_graph: Seq[Seq[Int]]): Unit = {
   pw.write(s"${pre_graph.length} ${pre_graph.head.length}\n")
   pw.write(pre_graph.map(_.mkString(" ")).mkString("\n"))
   pw.close()
+}
+
+@main def main(): Unit = {
+  val pg = pre_graph(3, 4, 5)
+  val g = graphify_pre_graph(pg)
+  println(pg)
+  println(g)
 }
