@@ -37,7 +37,8 @@ case class Graph(
     if currentColor == newColor then return this.copy()
 
     // keep track of the vertices we've checked
-    val checked: Array[Int] = vertices.map(_ => 0).toArray
+    val checked: Array[Boolean] = vertices.map(_ => false).toArray
+    checked(0) = true
 
     @tailrec
     def verticesToColor(
@@ -46,11 +47,10 @@ case class Graph(
     ): List[Int] = q match {
       case Nil => acc
       case h :: tail =>
-        checked(h) = 1
         if labels(h) == currentColor then
           // getting newQ and updating checked are "constant time" bcz a vertex can have a max of 4 neighbors and we're prepending to tail
-          val newQ = adjacency(h).filter(v => checked(v) == 0) ::: tail
-          for v <- adjacency(h) do checked(v) = 1
+          val newQ = adjacency(h).filter(v => !checked(v)) ::: tail
+          for v <- adjacency(h) do checked(v) = true
           verticesToColor(newQ, h :: acc)
         else verticesToColor(tail, acc)
     }
