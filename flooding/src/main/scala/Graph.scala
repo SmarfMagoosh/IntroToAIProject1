@@ -1,11 +1,17 @@
 import scala.collection.mutable.ListBuffer as MutList
+import scala.collection.mutable.Queue as MutQueue
+import scala.annotation.tailrec
 
-/**
- * A standard undirected graph with labellable vertices
- * @param vertices a range of integers indicating
- * @param edges ordered pairs of integers indicating undirected edges of the graph
- */
-class Graph(private val vertices: Range, private val edges: List[(Int, Int)]) {
+/** A standard undirected graph with labellable vertices
+  * @param vertices
+  *   a range of integers indicating
+  * @param edges
+  *   ordered pairs of integers indicating undirected edges of the graph
+  */
+case class Graph(
+    private val vertices: Range,
+    private val edges: List[(Int, Int)]
+) {
   // current color labels of the graph
   val labels: Array[Int] = vertices.map(_ => 0).toArray
 
@@ -19,7 +25,42 @@ class Graph(private val vertices: Range, private val edges: List[(Int, Int)]) {
     adjList.map(_.toList)
   }
 
-  // TODO: add extra methods here because we need em fr fr
+  /** @param index
+    *   the vertex on the Graph to pick
+    * @return
+    *   a new Graph containing the resulting state after applying the operation
+    */
+  def pick(index: Int): Graph = {
+    val currentColor = labels(0)
+    val newColor = labels(index)
+    // don't do anything and return a copy if the color is the same
+    if currentColor == newColor then return this.copy()
+
+    // keep track of the vertices we've checked
+    val checked: Array[Int] = vertices.map(_ => 0).toArray
+
+    @tailrec
+    def verticesToColor(
+        q: List[Int],
+        acc: List[Int] = List()
+    ): List[Int] = q match {
+      case Nil => acc
+      case h :: tail =>
+        checked(h) = 1
+        if labels(h) == currentColor then
+          // getting newQ and updating checked are "constant time" bcz a vertex can have a max of 4 neighbors and we're prepending to tail
+          val newQ = adjacency(h).filter(v => checked(v) == 0) ::: tail
+          for v <- adjacency(h) do checked(v) = 1
+          verticesToColor(newQ, h :: acc)
+        else verticesToColor(tail, acc)
+    }
+    val toColor = verticesToColor(List(0))
+
+    // return a new graph with the resulting state
+    val newGraph = this.copy()
+    for v <- toColor do newGraph.labels(v) = newColor
+    newGraph
+  }
 
   override def toString: String =
     s"${vertices.map(v => s"$v (${labels(v)}) -> ${adjacency(v).mkString("[", ", ", "]")}").mkString("\n")}"
