@@ -5,3 +5,4 @@ project/target
 project/metals.sbt
 target/
 .scalafmt.conf
+.DS_Store
