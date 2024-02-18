@@ -3,6 +3,8 @@ import scala.collection.mutable.Queue as MutQueue
 import scala.annotation.tailrec
 import scala.collection.mutable.Map as MutMap
 
+type Action = (Int, Int) // first int is color we pick, second is vertex we're recoloring
+
 /** A standard undirected graph with labelled vertices
   *
   * @param vertices
@@ -71,6 +73,10 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
     newG.labels(vertexMap(vertex)) = newColor
     newG
   }
+
+  def isSolution(actions: List[Action]): Boolean = actions.foldLeft(this)({
+    (g: Graph, pair: (Int, Int)) => g.pick(pair._1, pair._2)
+  }).vertices.end == 1
 
   override def toString: String =
     s"${vertices.map(v => s"$v (${labels(v)}) -> ${adjacency(v).mkString("[", ", ", "]")}").mkString("\n")}"
