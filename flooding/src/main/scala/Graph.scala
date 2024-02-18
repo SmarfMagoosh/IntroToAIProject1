@@ -43,26 +43,22 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
   def pick(newColor: Int, vertex: Int = 0): Graph = {
     // don't do anything and return a copy if the color is the same
     if labels(vertex) == newColor then return this.copy()
+    val verticesToRemove = adjacency(vertex).filter(v => labels(v) == newColor)
+    val verticesToRemain = vertices.diff(verticesToRemove)
+    val vertexMap = verticesToRemain.zipWithIndex.toMap
+    val blob_index = vertexMap(vertex)
+    val newEdges = (for {
+      edge <- edges
+      v1_prime = vertexMap.getOrElse(edge._1, blob_index)
+      v2_prime = vertexMap.getOrElse(edge._2, blob_index)
+      if v1_prime != v2_prime
+    } yield {
+      (v1_prime min v2_prime, v1_prime max v2_prime)
+    }).distinct
 
-    val verticesToRemove =
-      adjacency(vertex).filter(v => labels(v) == newColor)
-    val verticesToRemain = vertices.diff(verticesToRemove).toList
-    val verticesMapping =
-      MutMap[Int, Int](verticesToRemain.zipWithIndex.map((v, i) => v -> i): _*)
-    for v <- verticesToRemove do verticesMapping += v -> verticesMapping(vertex)
-
-    val newEdges = edges
-      .map((v1, v2) => {
-        val v1Mapped = verticesMapping(v1)
-        val v2Mapped = verticesMapping(v2)
-        (v1Mapped.min(v2Mapped), v1Mapped.max(v2Mapped))
-      })
-      .filter((v1, v2) => v1 != v2)
-      .distinct
-
-    val newG = Graph(0 until verticesToRemain.length, newEdges)
-    for v <- verticesToRemain do newG.labels(verticesMapping(v)) = labels(v)
-    newG.labels(verticesMapping(vertex)) = newColor
+    val newG = Graph(verticesToRemain.indices, newEdges)
+    for v <- verticesToRemain do newG.labels(vertexMap(v)) = labels(v)
+    newG.labels(vertexMap(vertex)) = newColor
     newG
   }
 

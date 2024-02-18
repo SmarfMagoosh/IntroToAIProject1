@@ -95,19 +95,6 @@ import scala.collection.mutable.Map as MutMap
     in_blob
   }
   var next_blob: Int = 0
-<<<<<<< Updated upstream
-  for v <- g.vertices do
-    if !(blobs contains v) then {
-      val blob: Array[Boolean] = dfs(v)
-      for b <- blob.indices; if blob(b) do blobs.put(b, next_blob)
-      next_blob = next_blob + 1
-    }
-  val edges = g.edges
-    .map((to, from) => (blobs(to), blobs(from)))
-    .map((to, from) => if to > from then (from, to) else (to, from))
-    .filter((to, from) => to != from)
-    .distinct
-=======
   for v <- g.vertices do if !(blobs contains v) then {
     val blob: Array[Boolean] = dfs(v)
     for b <- blob.indices; if blob(b) do blobs.put(b, next_blob)
@@ -119,7 +106,6 @@ import scala.collection.mutable.Map as MutMap
     if to_prime > from_prime then (from_prime, to_prime) else (from_prime, to_prime)
   }).distinct
 
->>>>>>> Stashed changes
   val g_prime: Graph = Graph(0 to blobs.values.max, edges)
   for v <- g.vertices do g_prime.labels(blobs(v)) = g.labels(v)
   g_prime
@@ -165,8 +151,6 @@ import scala.collection.mutable.Map as MutMap
   for i <- labels.indices do g.labels(i) = labels(i)
   g
 }
-<<<<<<< Updated upstream
-=======
 
 def time_it[A](fn: => A): Long = {
   val start = System.currentTimeMillis()
@@ -175,17 +159,21 @@ def time_it[A](fn: => A): Long = {
 }
 
 @main def main(): Unit = {
-  val graphs: List[Graph] = (5 to 200 by 5).map(x => graphify_pre_graph(pre_graph(x, x, x / 5))).toList
-  val pw: PrintWriter = new PrintWriter(new File("runtime.csv"))
-  for graph <- graphs do {
-    val time = time_it(blobify(graph))
-    pw.write(s"${graph.vertices.end},$time\n")
-    println(s"${Math.sqrt(graph.vertices.end)}")
-  }
-  pw.close()
+//  val graphs: List[Graph] = (5 to 200 by 5).map(x => graphify_pre_graph(pre_graph(x, x, x / 5))).toList
+//  val pw: PrintWriter = new PrintWriter(new File("runtime.csv"))
+//  for graph <- graphs do {
+//    val time = time_it(blobify(graph))
+//    pw.write(s"${graph.vertices.end},$time\n")
+//    println(s"${Math.sqrt(graph.vertices.end)}")
+//  }
+//  pw.close()
+  val g: Graph = Graph(0 to 5, List((0, 1), (0, 2), (0, 3), (1, 2), (3, 4), (4, 5)))
+  g.labels(0) = 1
+  g.labels(1) = 3
+  g.labels(2) = 2
+  g.labels(3) = 2
+  g.labels(4) = 1
+  g.labels(5) = 3
+  val g_prime = g.pick(2)
+  println(g_prime)
 }
-
-
-
-
->>>>>>> Stashed changes
