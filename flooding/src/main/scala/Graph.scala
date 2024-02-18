@@ -14,7 +14,7 @@ type Action = (Int, Int) // first int is color we pick, second is vertex we're r
   * @author
   *   Evan Dreher, Micah Nicodemus
   */
-class Graph(vertices: Range, edges: List[(Int, Int)]) {
+class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
 
   /** Array to keep track of the labels for our graph, indices relate to
     * vertices
