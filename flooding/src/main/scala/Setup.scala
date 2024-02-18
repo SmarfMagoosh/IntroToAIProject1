@@ -49,6 +49,8 @@ import scala.collection.mutable.Map as MutMap
   *   The 2D sequence to turn into a labelled graph
   * @return
   *   A labelled graph corresponding to the input grid of colors
+  * @author
+  *   Evan Dreher
   */
 @unused def graphify_pre_graph(pre_graph: Seq[Seq[Int]]): Graph = {
   val (rows, cols) = (pre_graph.length, pre_graph.head.length)
