@@ -3,15 +3,10 @@ import scala.collection.mutable.Queue as MutQueue
 import scala.annotation.tailrec
 
 /** A standard undirected graph with labellable vertices
-  * @param vertices
-  *   a range of integers indicating
-  * @param edges
-  *   ordered pairs of integers indicating undirected edges of the graph
+  * @param vertices a range of integers indicating
+  * @param edges ordered pairs of integers indicating undirected edges of the graph
   */
-case class Graph(
-    val vertices: Range,
-    private val edges: List[(Int, Int)]
-) {
+case class Graph(vertices: Range, edges: List[(Int, Int)]) {
   // current color labels of the graph
   val labels: Array[Int] = vertices.map(_ => 0).toArray
 
