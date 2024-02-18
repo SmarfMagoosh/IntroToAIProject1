@@ -12,7 +12,7 @@ import scala.collection.mutable.Map as MutMap
   * @author
   *   Evan Dreher, Micah Nicodemus
   */
-case class Graph(vertices: Range, edges: List[(Int, Int)]) {
+class Graph(vertices: Range, edges: List[(Int, Int)]) {
 
   /** Array to keep track of the labels for our graph, indices relate to
     * vertices
@@ -31,8 +31,8 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
     adjList.map(_.toList)
   }
 
-  /** Recolors a vertex to be a new color and blobifies the resulting graph so that no neighbors have the same
-    * color
+  /** Recolors a vertex to be a new color and blobifies the resulting graph so
+    * that no neighbors have the same color
     *
     * @param newColor
     *   the color to change the vertex to
@@ -45,7 +45,7 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
     */
   def pick(newColor: Int, vertex: Int = 0): Graph = {
     // don't do anything and return a copy if the color is the same
-    if labels(vertex) == newColor then return this.copy()
+    if labels(vertex) == newColor then return Graph(vertices, edges)
 
     // vertices in and out of the blob
     val verticesToRemove = adjacency(vertex).filter(v => labels(v) == newColor)
@@ -53,16 +53,16 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
 
     // vertex in G => vertex in G'
     val vertexMap = verticesToRemain.zipWithIndex.toMap
-    val blob_index = vertexMap(vertex)
+    val blobIndex = vertexMap(vertex)
 
     // maps edges in G to edges in G'
     val newEdges = (for {
       edge <- edges
-      v1_prime = vertexMap.getOrElse(edge._1, blob_index)
-      v2_prime = vertexMap.getOrElse(edge._2, blob_index)
-      if v1_prime != v2_prime
+      v1Prime = vertexMap.getOrElse(edge._1, blobIndex)
+      v2Prime = vertexMap.getOrElse(edge._2, blobIndex)
+      if v1Prime != v2Prime
     } yield {
-      (v1_prime min v2_prime, v1_prime max v2_prime)
+      (v1Prime min v2Prime, v1Prime max v2Prime)
     }).distinct
 
     // create G' and label its vertices
