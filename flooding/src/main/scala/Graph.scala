@@ -31,7 +31,8 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
     adjList.map(_.toList)
   }
 
-  /** TODO: insert description so our code is OP
+  /** Recolors a vertex to be a new color and blobifies the resulting graph so that no neighbors have the same
+    * color
     *
     * @param newColor
     *   the color to change the vertex to
@@ -39,14 +40,22 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
     *   the vertex to start the coloring from
     * @return
     *   a new Graph containing the resulting state after applying the operation
+    * @author
+    *   Micah Nicodemus
     */
   def pick(newColor: Int, vertex: Int = 0): Graph = {
     // don't do anything and return a copy if the color is the same
     if labels(vertex) == newColor then return this.copy()
+
+    // vertices in and out of the blob
     val verticesToRemove = adjacency(vertex).filter(v => labels(v) == newColor)
     val verticesToRemain = vertices.diff(verticesToRemove)
+
+    // vertex in G => vertex in G'
     val vertexMap = verticesToRemain.zipWithIndex.toMap
     val blob_index = vertexMap(vertex)
+
+    // maps edges in G to edges in G'
     val newEdges = (for {
       edge <- edges
       v1_prime = vertexMap.getOrElse(edge._1, blob_index)
@@ -56,6 +65,7 @@ case class Graph(vertices: Range, edges: List[(Int, Int)]) {
       (v1_prime min v2_prime, v1_prime max v2_prime)
     }).distinct
 
+    // create G' and label its vertices
     val newG = Graph(verticesToRemain.indices, newEdges)
     for v <- verticesToRemain do newG.labels(vertexMap(v)) = labels(v)
     newG.labels(vertexMap(vertex)) = newColor

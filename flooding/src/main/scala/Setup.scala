@@ -151,29 +151,3 @@ import scala.collection.mutable.Map as MutMap
   for i <- labels.indices do g.labels(i) = labels(i)
   g
 }
-
-def time_it[A](fn: => A): Long = {
-  val start = System.currentTimeMillis()
-  fn
-  System.currentTimeMillis() - start
-}
-
-@main def main(): Unit = {
-//  val graphs: List[Graph] = (5 to 200 by 5).map(x => graphify_pre_graph(pre_graph(x, x, x / 5))).toList
-//  val pw: PrintWriter = new PrintWriter(new File("runtime.csv"))
-//  for graph <- graphs do {
-//    val time = time_it(blobify(graph))
-//    pw.write(s"${graph.vertices.end},$time\n")
-//    println(s"${Math.sqrt(graph.vertices.end)}")
-//  }
-//  pw.close()
-  val g: Graph = Graph(0 to 5, List((0, 1), (0, 2), (0, 3), (1, 2), (3, 4), (4, 5)))
-  g.labels(0) = 1
-  g.labels(1) = 3
-  g.labels(2) = 2
-  g.labels(3) = 2
-  g.labels(4) = 1
-  g.labels(5) = 3
-  val g_prime = g.pick(2)
-  println(g_prime)
-}
