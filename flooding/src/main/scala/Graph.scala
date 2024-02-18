@@ -25,18 +25,21 @@ case class Graph(
     adjList.map(_.toList)
   }
 
-  /** @param index the vertex on the Graph to pick
-    * @return a new Graph containing the resulting state after applying the operation
+  /** @param newColor
+    *   the color to change the vertex to
+    * @param vertex
+    *   the vertex to start the coloring from
+    * @return
+    *   a new Graph containing the resulting state after applying the operation
     */
-  def pick(index: Int): Graph = {
-    val currentColor = labels(0)
-    val newColor = labels(index)
+  def pick(newColor: Int, vertex: Int = 0): Graph = {
+    val currentColor = labels(vertex)
     // don't do anything and return a copy if the color is the same
     if currentColor == newColor then return this.copy()
 
     // keep track of the vertices we've checked
     val checked: Array[Boolean] = vertices.map(_ => false).toArray
-    checked(0) = true
+    checked(vertex) = true
 
     @tailrec
     def verticesToColor(
@@ -52,7 +55,9 @@ case class Graph(
           verticesToColor(newQ, h :: acc)
         else verticesToColor(tail, acc)
     }
-    val toColor = verticesToColor(List(0))
+    val toColor = verticesToColor(List(vertex))
+
+    // TODO: combine all vertices in the "blob"
 
     // return a new graph with the resulting state
     val newGraph = this.copy()
