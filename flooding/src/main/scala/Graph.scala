@@ -9,7 +9,7 @@ import scala.annotation.tailrec
   *   ordered pairs of integers indicating undirected edges of the graph
   */
 case class Graph(
-    private val vertices: Range,
+    val vertices: Range,
     private val edges: List[(Int, Int)]
 ) {
   // current color labels of the graph
@@ -25,10 +25,8 @@ case class Graph(
     adjList.map(_.toList)
   }
 
-  /** @param index
-    *   the vertex on the Graph to pick
-    * @return
-    *   a new Graph containing the resulting state after applying the operation
+  /** @param index the vertex on the Graph to pick
+    * @return a new Graph containing the resulting state after applying the operation
     */
   def pick(index: Int): Graph = {
     val currentColor = labels(0)

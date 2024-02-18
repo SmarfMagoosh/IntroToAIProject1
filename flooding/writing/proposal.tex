@@ -13,7 +13,7 @@
 \maketitle
 
 \section{The Problem}
-\par The problem is to solve the "Flood-it" game (https://unixpapa.com/floodit/). The game is played as follows
+\par The problem is to solve the ``Flood-it'' game (https://unixpapa.com/floodit/). The game is played as follows
 \begin{itemize}
     \item The goal is to get the whole board to be one color in the minimum number of moves
     \item You perform a ``move'' by selecting a color.
@@ -24,12 +24,12 @@
 \par We will get instances of the problem by randomly generating a 2D grid of integers representing colors. We will then algorithmically convert that 2D grid into a graph as an instance.
 
 \section{Algorithms}
-\par tentative
+\par Our first algorithm that we will implement is A* with heuristics such as total nodes in the graph after recoloring, and degree of the ``Blob Node''. Our other algorithm will be Beam-Stack Search with similar heuristics.
 
 \section{Experimentation}
 \par For experimentation we will vary the total number of nodes, board shape (approximately square boards, vs boards where one dimension is significantly larger), the number of colors, and the ability to recolor any vertex on the graph rather than just the top left one.
 
 \section{Performance Metrics}
-\par runtime, percent of instances where it found a solution, more stuff here
+\par Percent of instances where it found a solution in under 5 minutes (exact number is tentative), memory usage, and overall runtime.
 
 \end{document}

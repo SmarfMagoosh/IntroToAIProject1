@@ -2,6 +2,7 @@ import scala.util.Random
 import java.io.File
 import java.util.Scanner
 import java.io.PrintWriter
+import scala.collection.mutable.Map as MutMap
 
 /** Generates a random grid of colored nodes
   * @param rows
@@ -27,8 +28,7 @@ def pre_graph(rows: Int, cols: Int, colors: Int): Seq[Seq[Int]] = {
 def pre_graph_from_file(name: String): Seq[Seq[Int]] = {
   val scantron: Scanner = new Scanner(new File(s"./samples/$name"))
   val (rows, cols) = (scantron.nextInt, scantron.nextInt)
-  val ret =
-    for row <- 0 until rows yield for col <- 0 until cols yield scantron.nextInt
+  val ret = for row <- 0 until rows yield for col <- 0 until cols yield scantron.nextInt
   scantron.close()
   ret
 }
@@ -58,20 +58,25 @@ def graphify_pre_graph(pre_graph: Seq[Seq[Int]]): Graph = {
   g
 }
 
-/** sends a pregraph to the shadow realm (SSD) as a .txt file
-  * @param name
-  *   the name of the file
-  * @param pre_graph
-  *   the graph to be sent to the shadow realm
-  */
-def send_graph_to_shadow_realm(name: String, pre_graph: Seq[Seq[Int]]): Unit = {
-  val f: File = File(s"./samples/$name.txt")
-  f.createNewFile()
-  val pw: PrintWriter = PrintWriter(f)
-  pw.write(s"${pre_graph.length} ${pre_graph.head.length}\n")
-  pw.write(pre_graph.map(_.mkString(" ")).mkString("\n"))
-  pw.close()
+def simplify_graph(graph: Graph): Graph = {
+  val blobs: MutMap[Int, Int] = MutMap()
+  var next_blob = 0;
+  for v <- graph.vertices do {
+    val blobbed_neighbors = graph.adjacency(v).filter(neighbor =>
+      graph.labels(neighbor) == graph.labels(v) && (blobs contains neighbor)
+    )
+    if blobbed_neighbors.isEmpty then {
+      blobs.put(v, next_blob)
+      next_blob = next_blob + 1
+    } else {
+      blobs.put(v, blobs(blobbed_neighbors.head))
+    }
+  }
+  println(blobs)
+  println(graph.labels.mkString("Array(", ", ", ")"))
+  graph
 }
+
 
 // copied from internet
 def time[T](block: => T): T = {
@@ -83,10 +88,7 @@ def time[T](block: => T): T = {
 }
 
 @main def main(): Unit = {
-  val pg = pre_graph(3, 4, 5)
-  val g = graphify_pre_graph(pg)
-  println(pg)
-  println(g)
-
-  time(g.pick(3))
+  val pg = pre_graph_from_file("graph1.txt")
+  val cg = graphify_pre_graph(pg)
+  val sg = simplify_graph(cg)
 }
