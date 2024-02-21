@@ -9,6 +9,8 @@
 \title{Artificial Intelligence Project 1 Proposal}
 \date{February 2024}
 
+\usepackage[margin=1.5in]{geometry}
+
 \begin{document}
 \maketitle
 
@@ -27,9 +29,9 @@
 \par Our first algorithm that we will implement is A* with heuristics such as total nodes in the graph after recoloring, and degree of the ``Blob Node''. Our other algorithm will be Beam-Stack Search with similar heuristics.
 
 \section{Experimentation}
-\par For experimentation we will vary the total number of nodes, board shape (approximately square boards, vs boards where one dimension is significantly larger), the number of colors, and the ability to recolor any vertex on the graph rather than just the top left one.
+\par For experimentation we will vary the total number of nodes and the number of colors.
 
 \section{Performance Metrics}
-\par Percent of instances where it found a solution in under 5 minutes (exact number is tentative), memory usage, and overall runtime.
+\par Percent of instances where it found a solution in under 5 minutes, number of nodes explored, and percent of instances it can solve in a fixed amount of memory.
 
 \end{document}

@@ -43,17 +43,17 @@ class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
     * @author
     *   Micah Nicodemus
     */
-  def pick(newColor: Int, vertex: Int = 0): Graph = {
+  def pick(newColor: Int): Graph = {
     // don't do anything and return a copy if the color is the same
-    if labels(vertex) == newColor then return Graph(vertices, edges)
+    if labels.head == newColor then return Graph(vertices, edges)
 
     // vertices in and out of the blob
-    val verticesToRemove = adjacency(vertex).filter(v => labels(v) == newColor)
-    val verticesToRemain = vertices.diff(verticesToRemove)
+    val verticesToRemove = adjacency.head.filter(v => labels(v) == newColor)
+    val verticesToRemain = vertices.filterNot(verticesToRemove contains _)
 
     // vertex in G => vertex in G'
     val vertexMap = verticesToRemain.zipWithIndex.toMap
-    val blobIndex = vertexMap(vertex)
+    val blobIndex = vertexMap(0)
 
     // maps edges in G to edges in G'
     val newEdges = (for {
@@ -68,16 +68,22 @@ class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
     // create G' and label its vertices
     val newG = Graph(verticesToRemain.indices, newEdges)
     for v <- verticesToRemain do newG.labels(vertexMap(v)) = labels(v)
-    newG.labels(vertexMap(vertex)) = newColor
+    newG.labels(vertexMap(0)) = newColor
     newG
   }
 
+<<<<<<< Updated upstream
   def isSolution(actions: List[Int]): Boolean = actions
     .foldLeft(this)({ (g: Graph, pair: Int) =>
       g.pick(pair)
     })
     .vertices
     .end == 1
+=======
+  def isSolution(actions: List[Int]): Boolean = actions.foldLeft(this)({
+    (g: Graph, action: Int) => g pick action
+  }).vertices.end == 1
+>>>>>>> Stashed changes
 
   override def toString: String =
     s"${vertices.map(v => s"$v (${labels(v)}) -> ${adjacency(v).mkString("[", ", ", "]")}").mkString("\n")}"
