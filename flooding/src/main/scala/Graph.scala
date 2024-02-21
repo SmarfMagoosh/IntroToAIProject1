@@ -71,19 +71,8 @@ class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
     newG.labels(vertexMap(0)) = newColor
     newG
   }
-
-<<<<<<< Updated upstream
-  def isSolution(actions: List[Int]): Boolean = actions
-    .foldLeft(this)({ (g: Graph, pair: Int) =>
-      g.pick(pair)
-    })
-    .vertices
-    .end == 1
-=======
-  def isSolution(actions: List[Int]): Boolean = actions.foldLeft(this)({
-    (g: Graph, action: Int) => g pick action
-  }).vertices.end == 1
->>>>>>> Stashed changes
+  
+  def isSolution(actions: List[Int]): Boolean = actions.foldLeft(this)(_ pick _).vertices.end == 1
 
   override def toString: String =
     s"${vertices.map(v => s"$v (${labels(v)}) -> ${adjacency(v).mkString("[", ", ", "]")}").mkString("\n")}"
