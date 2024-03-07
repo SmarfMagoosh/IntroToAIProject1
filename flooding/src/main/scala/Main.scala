@@ -1,3 +1,1 @@
-@main def main(): Unit = {
-
-}
+@main def main(): Unit = {}

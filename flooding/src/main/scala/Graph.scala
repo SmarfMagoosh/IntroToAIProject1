@@ -12,7 +12,7 @@ import scala.collection.mutable.Map as MutMap
   * @author
   *   Evan Dreher, Micah Nicodemus
   */
-class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
+case class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
 
   /** Array to keep track of the labels for our graph, indices relate to
     * vertices
@@ -71,18 +71,23 @@ class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
     newG.labels(vertexMap(0)) = newColor
     newG
   }
-  
+
   @targetName("equals")
   def ==(other: Graph): Boolean = {
     if labels.length != other.labels.length then return false
     if !(labels zip other.labels).forall(_ == _) then return false
-    if vertices.start != other.vertices.start || vertices.end != other.vertices.end then return false
-    (adjacency.map(_.toSet) zip other.adjacency.map(_.toSet)).map(_ == _).reduce(_ && _)
+    if vertices.start != other.vertices.start || vertices.end != other.vertices.end
+    then return false
+    (adjacency.map(_.toSet) zip other.adjacency.map(_.toSet))
+      .map(_ == _)
+      .reduce(_ && _)
   }
-  
-  def isSolution(actions: List[Int]): Boolean = actions.foldLeft(this)(_ pick _).vertices.end == 1
 
-  def set_labels(new_labels: Iterable[Int]): Unit = new_labels.zipWithIndex.foreach((l, i) => labels(i) = l)
+  def isSolution(actions: List[Int]): Boolean =
+    actions.foldLeft(this)(_ pick _).vertices.end == 1
+
+  def set_labels(new_labels: Iterable[Int]): Unit =
+    new_labels.zipWithIndex.foreach((l, i) => labels(i) = l)
 
   override def toString: String =
     s"${vertices.map(v => s"$v (${labels(v)}) -> ${adjacency(v).mkString("[", ", ", "]")}").mkString("\n")}"
