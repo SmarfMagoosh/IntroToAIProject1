@@ -36,10 +36,9 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
     breakable {
       for (node <- beam(l)) {
         // check if goal state
-        if node.vertices.length == 1 then
+        if node.isGoal then
           bestSolution = Some(l)
           costUpperLimit = l
-          // println(s"Found solution at depth $l")
           break
 
         // generate successors on next level
