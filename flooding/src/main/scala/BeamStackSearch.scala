@@ -9,9 +9,10 @@ import scala.util.control.Breaks._
 // (fmin, fmax, heuristic of last explored node, hashcode of last explored node)
 type BeamStackItem = (Int, Int, Option[Int], Option[Int])
 
+// TODO: use the State class from A_Star.scala
 def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
     start: Graph
-): Option[Int] = {
+): (Option[Int], Long) = {
   // the g cost is the same across the entire layer, so we can just use the heuristic
   val layerOrdering = Ordering.by { (g: Graph) => (g, g) }(
     Ordering.Tuple2(
@@ -20,6 +21,7 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
     )
   )
 
+  var nodesExplored: Long = 1
   var costUpperLimit = (heuristic(start) + 1) * 2
   var bestSolution: Option[Int] = None
   var l = 0
@@ -85,6 +87,9 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
     // go to next level if there's stuff to explore
     // backtrack if not
     if beam(l + 1).nonEmpty then
+      // update the number of nodes explored
+      nodesExplored += beam(l + 1).length
+
       // ensure the next layer is sorted
       // max size of beamWidth
       beam(l + 1) = beam(l + 1).sorted(layerOrdering)
@@ -128,5 +133,5 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
         )
   }
 
-  bestSolution
+  (bestSolution, nodesExplored)
 }
