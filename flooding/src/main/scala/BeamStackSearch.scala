@@ -10,7 +10,7 @@ import scala.util.control.Breaks._
 type BeamStackItem = (Int, Int, Option[Int], Option[Int])
 
 // TODO: use the State class from A_Star.scala
-def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
+def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
     start: Graph
 ): (Option[Int], Long) = {
   // the g cost is the same across the entire layer, so we can just use the heuristic
@@ -42,7 +42,7 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
           break
 
         // generate successors on next level
-        for c <- colors if c != node.labels.head do
+        for c <- node.adjacency(0).map(node.labels(_)).distinct do
           val successor = node.pick(c)
           val f = (l + 1) + heuristic(successor) // g + h
 
@@ -64,7 +64,7 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
         // prune the next layer
         if beam(l + 1).length > beamWidth then
           // sort the layer before pruning
-          // max size of beamWidth + colors.length - 1
+          // max size of beamWidth + numColors.length - 1
           beam(l + 1) = beam(l + 1).sorted(layerOrdering)
 
           val fBestPruned =
