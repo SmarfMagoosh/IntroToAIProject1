@@ -4,13 +4,28 @@ import scala.util.control.Breaks._
 // (fmin, fmax, f-cost of last explored node, hashcode of last explored graph)
 type BeamStackItem = (Int, Int, Option[Int], Option[Int])
 
+case class BeamStackSearchState(graph: Graph, path: List[Int], h: Int) {
+  def getSuccessors(heuristic: Graph => Int): List[BeamStackSearchState] = {
+    val actions = graph.adjacency(0).map(graph.labels(_)).distinct
+    actions.map(color => {
+      val successor = graph.pick(color)
+      BeamStackSearchState(successor, color :: path, heuristic(successor))
+    })
+  }
+
+  def f: Int = path.length + h
+
+  override def toString: String =
+    s"Path: ${path.mkString("[", ", ", "]")}\nHeuristic:$h\nGraph:\n$graph\n"
+}
+
 def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
     start: Graph
 ): (Long, List[Int]) = {
-  val layerOrdering = Ordering.by { (s: State) => (s, s) }(
+  val layerOrdering = Ordering.by { (s: BeamStackSearchState) => (s, s) }(
     Ordering.Tuple2(
-      Ordering.by[State, Int](_.f),
-      Ordering.by[State, Int](_.graph.hashCode())
+      Ordering.by[BeamStackSearchState, Int](_.f),
+      Ordering.by[BeamStackSearchState, Int](_.graph.hashCode)
     )
   )
 
@@ -20,8 +35,8 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
   var l = 0
 
   val beamStack = Stack[BeamStackItem]((0, costUpperLimit, None, None))
-  val beam = MutArray[MutArray[State]](
-    MutArray(State(start, List(), heuristic(start))), // layer 0
+  val beam = MutArray[MutArray[BeamStackSearchState]](
+    MutArray(BeamStackSearchState(start, List(), heuristic(start))), // layer 0
     MutArray() // layer 1
   )
 
@@ -36,13 +51,13 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
           break
 
         // generate successors on next level
-        for successor <- node.get_successors(heuristic) do
+        for successor <- node.getSuccessors(heuristic) do
           // check if the successor is unexplored in the layer
           val lastNotPrunedCost = beamStack.top._3
           val lastNotPrunedHashCode = beamStack.top._4
           val isUnexplored =
             if lastNotPrunedCost.nonEmpty && lastNotPrunedCost.get == successor.f
-            then successor.graph.hashCode() > lastNotPrunedHashCode.get
+            then successor.graph.hashCode > lastNotPrunedHashCode.get
             else true
 
           if isUnexplored &&
@@ -90,7 +105,7 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
           currentTop._1,
           currentTop._2,
           Some(worstNotPruned.f),
-          Some(worstNotPruned.graph.hashCode())
+          Some(worstNotPruned.graph.hashCode)
         )
       )
 
