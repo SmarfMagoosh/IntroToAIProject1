@@ -1,64 +1,54 @@
-import scala.collection.mutable.{
-  Stack,
-  PriorityQueue,
-  TreeSet,
-  ArrayBuffer as MutArray
-}
+import scala.collection.mutable.{Stack, ArrayBuffer as MutArray}
 import scala.util.control.Breaks._
 
-// (fmin, fmax, heuristic of last explored node, hashcode of last explored node)
+// (fmin, fmax, f-cost of last explored node, hashcode of last explored graph)
 type BeamStackItem = (Int, Int, Option[Int], Option[Int])
 
-// TODO: use the State class from A_Star.scala
 def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
     start: Graph
-): (Option[Int], Long) = {
-  // the g cost is the same across the entire layer, so we can just use the heuristic
-  val layerOrdering = Ordering.by { (g: Graph) => (g, g) }(
+): (Long, List[Int]) = {
+  val layerOrdering = Ordering.by { (s: State) => (s, s) }(
     Ordering.Tuple2(
-      Ordering.by[Graph, Int](heuristic(_)),
-      Ordering.by[Graph, Int](_.hashCode())
+      Ordering.by[State, Int](_.f),
+      Ordering.by[State, Int](_.graph.hashCode())
     )
   )
 
   var nodesExplored: Long = 1
   var costUpperLimit = (heuristic(start) + 1) * 2
-  var bestSolution: Option[Int] = None
+  var bestSolution: List[Int] = List()
   var l = 0
 
   val beamStack = Stack[BeamStackItem]((0, costUpperLimit, None, None))
-  val beam = MutArray[MutArray[Graph]](
-    MutArray(start), // layer 0
+  val beam = MutArray[MutArray[State]](
+    MutArray(State(start, List(), heuristic(start))), // layer 0
     MutArray() // layer 1
   )
 
   while (beamStack.nonEmpty) {
     breakable {
-      for (node <- beam(l)) {
+      for ((node, i) <- beam(l).zipWithIndex) {
         // check if goal state
-        if node.isGoal then
-          bestSolution = Some(l)
+        if node.graph.isGoal then
+          bestSolution = node.path.reverse
           costUpperLimit = l
+          nodesExplored -= beam(l).length - i + 1
           break
 
         // generate successors on next level
-        for c <- node.adjacency(0).map(node.labels(_)).distinct do
-          val successor = node.pick(c)
-          val f = (l + 1) + heuristic(successor) // g + h
-
+        for successor <- node.get_successors(heuristic) do
           // check if the successor is unexplored in the layer
           val lastNotPrunedCost = beamStack.top._3
           val lastNotPrunedHashCode = beamStack.top._4
           val isUnexplored =
-            if lastNotPrunedCost.nonEmpty && lastNotPrunedCost.get == f then
-              successor.hashCode() > lastNotPrunedHashCode.get
+            if lastNotPrunedCost.nonEmpty && lastNotPrunedCost.get == successor.f
+            then successor.graph.hashCode() > lastNotPrunedHashCode.get
             else true
 
-          if isUnexplored && !beam(l).contains(
-              successor
-            ) && !beam(l + 1).contains(
-              successor
-            ) && f >= beamStack.top._1 && f < beamStack.top._2
+          if isUnexplored &&
+            successor.f >= beamStack.top._1 && successor.f < beamStack.top._2 &&
+            !beam(l).map(_.graph).contains(successor.graph) &&
+            !beam(l + 1).map(_.graph).contains(successor.graph)
           then beam(l + 1).append(successor)
 
         // prune the next layer
@@ -67,8 +57,7 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
           // max size of beamWidth + numColors.length - 1
           beam(l + 1) = beam(l + 1).sorted(layerOrdering)
 
-          val fBestPruned =
-            (l + 1) + heuristic(beam(l + 1)(beamWidth)) // g + h
+          val fBestPruned = beam(l + 1)(beamWidth).f
           beam(l + 1) = beam(l + 1).take(beamWidth)
 
           val currentTop = beamStack.pop()
@@ -100,8 +89,8 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
         (
           currentTop._1,
           currentTop._2,
-          Some(l + 1 + heuristic(worstNotPruned)),
-          Some(worstNotPruned.hashCode())
+          Some(worstNotPruned.f),
+          Some(worstNotPruned.graph.hashCode())
         )
       )
 
@@ -132,5 +121,5 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
         )
   }
 
-  (bestSolution, nodesExplored)
+  (nodesExplored, bestSolution)
 }

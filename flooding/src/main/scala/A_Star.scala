@@ -9,6 +9,7 @@ case class State(graph: Graph, path: List[Int], h_value: Int) {
       State(g_prime, color :: path, heuristic(g_prime))
     })
   }
+  def f: Int = path.length + h_value
   override def toString: String = s"Path: ${path.mkString("[", ", ", "]")}\nHeuristic:$h_value\nGraph:\n$graph\n"
 }
 
