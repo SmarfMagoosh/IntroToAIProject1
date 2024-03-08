@@ -100,7 +100,7 @@ import scala.collection.mutable.Map as MutMap
     for b <- blob.indices; if blob(b) do blobs.put(b, next_blob)
     next_blob = next_blob + 1
   }
-  val edges = (for edge <- g.edges; if edge._1 != edge._2 yield {
+  val edges = (for edge <- g.edges; if blobs(edge._1) != blobs(edge._2) yield {
     val to_prime = blobs(edge._1)
     val from_prime = blobs(edge._2)
     if to_prime > from_prime then (from_prime, to_prime) else (from_prime, to_prime)
@@ -125,7 +125,7 @@ import scala.collection.mutable.Map as MutMap
   val f: File = new File(s"./samples/$name")
   val pw: PrintWriter = new PrintWriter(f)
   pw.write(s"${g.vertices.end + 1} ${g.edges.length}\n")
-  pw.write(s"${g.edges.mkString("", "\n", "")}\n")
+  pw.write(s"${g.edges.map((t, f) => s"$t $f").mkString("", "\n", "")}\n")
   pw.write(s"${g.labels.mkString("", " ", "")}")
   pw.flush()
 }
@@ -144,8 +144,7 @@ import scala.collection.mutable.Map as MutMap
   val scantron: Scanner = new Scanner(new File(s"./samples/$name"))
   def readInt: Int = scantron.nextInt
   val (num_vertices, num_edges) = (readInt, readInt)
-  val edges: List[(Int, Int)] =
-    (1 to num_edges).map(_ => (readInt, readInt)).toList
+  val edges: List[(Int, Int)] = (1 to num_edges).map(_ => (readInt, readInt)).toList
   val labels: Array[Int] = (1 to num_vertices).map(_ => readInt).toArray
   val g: Graph = Graph(0 until num_vertices, edges)
   for i <- labels.indices do g.labels(i) = labels(i)

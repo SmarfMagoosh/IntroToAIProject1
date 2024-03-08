@@ -79,6 +79,8 @@ class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
     if vertices.start != other.vertices.start || vertices.end != other.vertices.end then return false
     (adjacency.map(_.toSet) zip other.adjacency.map(_.toSet)).map(_ == _).reduce(_ && _)
   }
+
+  def isGoal: Boolean = this.vertices.end == 1
   
   def isSolution(actions: List[Int]): Boolean = actions.foldLeft(this)(_ pick _).vertices.end == 1
 
