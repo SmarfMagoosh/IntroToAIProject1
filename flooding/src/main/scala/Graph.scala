@@ -83,8 +83,10 @@ case class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
       .reduce(_ && _)
   }
 
-  def isSolution(actions: List[Int]): Boolean =
-    actions.foldLeft(this)(_ pick _).vertices.end == 1
+  def isGoal: Boolean = this.vertices.end == 1
+  
+  def isSolution(actions: List[Int]): Boolean = actions.foldLeft(this)(_ pick _).vertices.end == 1
+
 
   def set_labels(new_labels: Iterable[Int]): Unit =
     new_labels.zipWithIndex.foreach((l, i) => labels(i) = l)
