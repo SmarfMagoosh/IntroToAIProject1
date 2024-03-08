@@ -60,15 +60,14 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
             ) && f >= beamStack.top._1 && f < beamStack.top._2
           then beam(l + 1).append(successor)
 
-        // sort the layer
-        // max size of BEAM_WIDTH + colors.length - 1
-        beam(l + 1) = beam(l + 1).sorted(layerOrdering)
-
         // prune the next layer
         if beam(l + 1).length > beamWidth then
+          // sort the layer before pruning
+          // max size of beamWidth + colors.length - 1
+          beam(l + 1) = beam(l + 1).sorted(layerOrdering)
+
           val fBestPruned =
             (l + 1) + heuristic(beam(l + 1)(beamWidth)) // g + h
-
           beam(l + 1) = beam(l + 1).take(beamWidth)
 
           val currentTop = beamStack.pop()
@@ -86,6 +85,10 @@ def beamStackSearch(heuristic: Graph => Int, colors: Range, beamWidth: Int)(
     // go to next level if there's stuff to explore
     // backtrack if not
     if beam(l + 1).nonEmpty then
+      // ensure the next layer is sorted
+      // max size of beamWidth
+      beam(l + 1) = beam(l + 1).sorted(layerOrdering)
+
       // ensure we resume from where we left off the next time we backtrack to this layer
       val worstNotPruned = beam(l + 1).last
       val currentTop = beamStack.pop()
