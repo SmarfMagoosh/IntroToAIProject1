@@ -28,7 +28,10 @@ def h2(g: Graph): Int = {
       }
     })
   }
-  val all_paths = found_distances.zipWithIndex.groupBy((d, i) => d).transform((k, v) => v.map(_._2).toList)
-  val paths_with_colors = all_paths.transform((k, v) => v.distinctBy(g.labels(_)).length)
-  paths_with_colors.map((d, c) => d + c - 1).max
+  val all_paths = found_distances.zipWithIndex.groupBy((d, _) => d)
+  val paths_with_colors = all_paths.transform((k, v) => v.distinctBy((x, y) => g.labels(y)).length)
+  //paths_with_colors.map((d, c) => d + c - 1).max
+  paths_with_colors.foldLeft(-1)((c: Int, p: (Int, Int)) => c max (p._1 + p._2 - 1))
 }
+
+def h3(g: Graph): Int = 0 // bfs
