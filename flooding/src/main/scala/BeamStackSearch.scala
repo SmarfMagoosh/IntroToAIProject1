@@ -26,16 +26,10 @@ case class BeamStackSearchState(
     })
   }
 
-  def path: List[Byte] = {
-    @tailrec
-    def buildPath(
-        state: BeamStackSearchState,
-        path: List[Byte] = List()
-    ): List[Byte] = state.parent match {
-      case Some(p) => buildPath(p, state.actionTaken :: path)
-      case None    => path
-    }
-    buildPath(this)
+  @tailrec
+  final def path(currPath: List[Byte] = List()): List[Byte] = parent match {
+    case Some(p) => p.path(actionTaken :: currPath)
+    case None    => currPath
   }
 }
 
@@ -67,7 +61,7 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
       for ((node, i) <- beam(l).zipWithIndex) {
         // check if goal state
         if node.graph.isGoal then
-          bestSolution = node.path
+          bestSolution = node.path()
           costUpperLimit = l
           nodesExplored -= beam(l).length - i + 1
           break
