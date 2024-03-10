@@ -1,27 +1,47 @@
 import scala.collection.mutable.{Stack, ArrayBuffer as MutArray}
 import scala.util.control.Breaks._
+import scala.annotation.tailrec
 
 // (fmin, fmax, f-cost of last explored node, hashcode of last explored graph)
 type BeamStackItem = (Int, Int, Option[Int], Option[Int])
 
-case class BeamStackSearchState(graph: Graph, path: List[Int], h: Int) {
-  def getSuccessors(heuristic: Graph => Int): List[BeamStackSearchState] = {
+case class BeamStackSearchState(
+    graph: Graph,
+    parent: Option[BeamStackSearchState],
+    actionTaken: Byte, // max 127 colors possible. -1 represents no action taken (will only be like that for start node)
+    f: Int
+) {
+  def getSuccessors(
+      heuristic: Graph => Int
+  )(layer: Int): List[BeamStackSearchState] = {
     val actions = graph.adjacency(0).map(graph.labels(_)).distinct
     actions.map(color => {
       val successor = graph.pick(color)
-      BeamStackSearchState(successor, color :: path, heuristic(successor))
+      BeamStackSearchState(
+        successor,
+        Some(this),
+        color.toByte,
+        (layer + 1) + heuristic(successor)
+      )
     })
   }
 
-  def f: Int = path.length + h
-
-  override def toString: String =
-    s"Path: ${path.mkString("[", ", ", "]")}\nHeuristic:$h\nGraph:\n$graph\n"
+  def path: List[Byte] = {
+    @tailrec
+    def buildPath(
+        state: BeamStackSearchState,
+        path: List[Byte] = List()
+    ): List[Byte] = state.parent match {
+      case Some(p) => buildPath(p, state.actionTaken :: path)
+      case None    => path
+    }
+    buildPath(this)
+  }
 }
 
 def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
     start: Graph
-): (Long, List[Int]) = {
+): (Long, List[Byte]) = {
   val layerOrdering = Ordering.by { (s: BeamStackSearchState) => (s, s) }(
     Ordering.Tuple2(
       Ordering.by[BeamStackSearchState, Int](_.f),
@@ -31,12 +51,14 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
 
   var nodesExplored: Long = 1
   var costUpperLimit = (heuristic(start) + 1) * 2
-  var bestSolution: List[Int] = List()
+  var bestSolution: List[Byte] = List()
   var l = 0
 
   val beamStack = Stack[BeamStackItem]((0, costUpperLimit, None, None))
   val beam = MutArray[MutArray[BeamStackSearchState]](
-    MutArray(BeamStackSearchState(start, List(), heuristic(start))), // layer 0
+    MutArray(
+      BeamStackSearchState(start, None, -1, heuristic(start))
+    ), // layer 0
     MutArray() // layer 1
   )
 
@@ -45,13 +67,13 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
       for ((node, i) <- beam(l).zipWithIndex) {
         // check if goal state
         if node.graph.isGoal then
-          bestSolution = node.path.reverse
+          bestSolution = node.path
           costUpperLimit = l
           nodesExplored -= beam(l).length - i + 1
           break
 
         // generate successors on next level
-        for successor <- node.getSuccessors(heuristic) do
+        for successor <- node.getSuccessors(heuristic)(l) do
           // check if the successor is unexplored in the layer
           val lastNotPrunedCost = beamStack.top._3
           val lastNotPrunedHashCode = beamStack.top._4
