@@ -1,28 +1,21 @@
 import scala.collection.mutable.ListBuffer as MutList
-import scala.collection.mutable.Queue as MutQueue
-import scala.annotation.{tailrec, targetName}
-import scala.collection.mutable.Map as MutMap
-
-case class Result(nodes_explored: Int, runtime: Long, solution: List[Int])
+import scala.annotation.tailrec
 
 /** A standard undirected graph with labelled vertices
  *
- * @param vertices
- *   a range of integers indicating the number of vertices on the graph
- * @param edges
- *   ordered pairs of integers indicating undirected edges of the graph
- * @author
- *   Evan Dreher, Micah Nicodemus
+ * @param vertices a range of integers indicating the number of vertices on the graph
+ * @param edges    ordered pairs of integers indicating undirected edges of the graph
+ * @author Evan Dreher, Micah Nicodemus
  */
-case class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
+case class Graph(vertices: Range, edges: List[(Int, Int)]) {
 
-  /** Array to keep track of the labels for our graph, indices relate to
-   * vertices
+  /**
+   * Array to keep track of the labels of the vertices
    */
   val labels: Array[Int] = vertices.map(_ => 0).toArray
 
-  /** Adjacency List for the Graph. Indices of the array correspond to vertices.
-   * Values in the list correspond to vertices it points to.
+  /**
+   * Adjacency List for the Graph
    */
   val adjacency: Array[List[Int]] = {
     val adjList: Array[MutList[Int]] = labels.map(_ => MutList())
@@ -33,17 +26,17 @@ case class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
     adjList.map(_.toList)
   }
 
+  /**
+   * true if this graph is a goal state (has only 1 vertex)
+   */
+  val isGoal: Boolean = this.vertices.end == 1
+
   /** Recolors a vertex to be a new color and blobifies the resulting graph so
    * that no neighbors have the same color
    *
-   * @param newColor
-   *   the color to change the vertex to
-   * @param vertex
-   *   the vertex to start the coloring from
-   * @return
-   *   a new Graph containing the resulting state after applying the operation
-   * @author
-   *   Micah Nicodemus
+   * @param newColor the color to change the vertex to
+   * @return a new Graph containing the resulting state after applying the operation
+   * @author Micah Nicodemus
    */
   def pick(newColor: Int): Graph = {
     // don't do anything and return a copy if the color is the same
@@ -73,25 +66,6 @@ case class Graph(val vertices: Range, val edges: List[(Int, Int)]) {
     newG.labels(vertexMap(0)) = newColor
     newG
   }
-
-  @targetName("equals")
-  def ==(other: Graph): Boolean = {
-    if labels.length != other.labels.length then return false
-    if !(labels zip other.labels).forall(_ == _) then return false
-    if vertices.start != other.vertices.start || vertices.end != other.vertices.end
-    then return false
-    (adjacency.map(_.toSet) zip other.adjacency.map(_.toSet))
-      .map(_ == _)
-      .reduce(_ && _)
-  }
-
-  def isGoal: Boolean = this.vertices.end == 1
-
-  def isSolution(actions: List[Int]): Boolean = actions.foldLeft(this)(_ pick _).vertices.end == 1
-
-
-  def set_labels(new_labels: Iterable[Int]): Unit =
-    new_labels.zipWithIndex.foreach((l, i) => labels(i) = l)
 
   override def toString: String =
     s"${vertices.map(v => s"$v (${labels(v)}) -> ${adjacency(v).mkString("[", ", ", "]")}").mkString("\n")}"
