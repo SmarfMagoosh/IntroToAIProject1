@@ -68,7 +68,6 @@ Size, Colors, ID, Beam Size, Nodes Explored, Runtime, Solution
 15,7,1,2, DNF, --, --
 15,7,2,2, DNF, --, --
 15,7,3,2, DNF, --, --
-,,,,,,
 20,4,0,2,9971,2780,Ê[2 1 3 1 3 2 1 0 2 0 2 0 3 0 1 0 2 1 0 3 1]
 20,4,1,2,1343,387,Ê[1 2 1 3 2 3 0 2 0 2 1 3 0 3 1 2 0 3 0 2 1]
 20,4,2,2,105,27,Ê[1 2 0 3 2 1 3 1 3 2 3 0 1 2 3]
@@ -99,3 +98,10 @@ Size, Colors, ID, Beam Size, Nodes Explored, Runtime, Solution
 25,6,2,2,ÊDNF,Ê--,Ê--
 25,6,3,2,ÊDNF,Ê--,Ê--
 25,6,4,2,ÊDNF,Ê--,Ê--
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,num solved,78,,
+,,,num total,99,,
+,,,percent solved,0.787878788,,

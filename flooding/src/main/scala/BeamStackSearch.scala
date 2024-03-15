@@ -1,3 +1,10 @@
+/*
+ * Beam Stack Search
+ * used pseudocode from https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf to implement parts of the algorithm.
+ * Used normal beam stack search instead of DCBSS that the paper has pseudocode for.
+ * @author Micah Nicodemus
+ * */
+
 import scala.collection.mutable.{Stack, ArrayBuffer as MutArray}
 import scala.util.control.Breaks._
 import scala.annotation.tailrec
@@ -5,12 +12,36 @@ import scala.annotation.tailrec
 // (fmin, fmax, f-cost of last explored node, hashcode of last explored graph)
 type BeamStackItem = (Int, Int, Option[Int], Option[Int])
 
+/** A state class for the Beam Stack algorithm
+  *
+  * @param graph
+  *   the current graph
+  * @param parent
+  *   the parent graph of the current graph (allows for path reconstruction)
+  * @param actionTaken
+  *   the action that was taken from the parent to get to the current graph
+  * @param f
+  *   the f-cost to get to the current graph
+  * @author
+  *   Micah Nicodemus
+  */
 case class BeamStackSearchState(
     graph: Graph,
     parent: Option[BeamStackSearchState],
     actionTaken: Byte, // max 127 colors possible. -1 represents no action taken (will only be like that for start node)
     f: Int
 ) {
+
+  /** Generates the successors of the current state
+    *
+    * @param heuristic
+    *   the heuristic function to use to calculate the h-cost of the successors
+    * @param layer
+    *   the current layer of the algorithm, used to calculate the f-cost of the
+    *   successors
+    * @return
+    *   a list of the successors of the current state
+    */
   def getSuccessors(
       heuristic: Graph => Int
   )(layer: Int): List[BeamStackSearchState] = {
@@ -26,6 +57,15 @@ case class BeamStackSearchState(
     })
   }
 
+  /** Reconstructs the path from the start node to the current node (aka gets
+    * the list of actions taken to solve the problem)
+    *
+    * @param currPath
+    *   the current path in the process of being reconstructed
+    * @return
+    *   the path from the start node to the current node (aka the list of
+    *   actions taken)
+    */
   @tailrec
   final def path(currPath: List[Byte] = List()): List[Byte] = parent match {
     case Some(p) => p.path(actionTaken :: currPath)
@@ -33,9 +73,30 @@ case class BeamStackSearchState(
   }
 }
 
-def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
+/** The Beam Stack Search algorithm
+  *
+  * @param heuristic
+  *   the heuristic function to use to calculate the h-cost of the successors
+  * @param beamWidth
+  *   the width of the beam
+  * @param start
+  *   the start graph
+  * @param verbosity
+  *   the verbosity level of the algorithm's output to the terminal (0 = no
+  *   output, 1 = general progress output, 2 = detailed output)
+  * @return
+  *   a tuple containing the number of nodes explored and the best solution to
+  *   the problem
+  */
+def beamStackSearch(
+    heuristic: Graph => Int,
+    beamWidth: Int,
+    verbosity: Byte = 0
+)(
     start: Graph
 ): (Long, List[Byte]) = {
+  if verbosity > 0 then println("Setting up Beam Stack Search")
+
   val layerOrdering = Ordering.by { (s: BeamStackSearchState) => (s, s) }(
     Ordering.Tuple2(
       Ordering.by[BeamStackSearchState, Int](_.f),
@@ -56,7 +117,16 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
     MutArray() // layer 1
   )
 
+  if verbosity > 0 then println("Starting Beam Stack Search")
+
   while (beamStack.nonEmpty) {
+    if verbosity > 0 then
+      println(
+        s"Layer $l: Generating successors for layer ${l + 1} in the range [${beamStack.top._1}, ${beamStack.top._2}) from ${beam(l).length} nodes: ${beam(
+            l
+          ).map(_.graph.hashCode).mkString(", ")}"
+      )
+
     breakable {
       for ((node, i) <- beam(l).zipWithIndex) {
         // check if goal state
@@ -64,6 +134,10 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
           bestSolution = node.path()
           costUpperLimit = l
           nodesExplored -= beam(l).length - i + 1
+          if verbosity > 0 then println(s"Goal found at level: $l")
+          if verbosity > 1 then
+            println(s"Solution Found: ${bestSolution.mkString(", ")}")
+            println(s"Nodes Explored so far: $nodesExplored")
           break
 
         // generate successors on next level
@@ -80,13 +154,26 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
             successor.f >= beamStack.top._1 && successor.f < beamStack.top._2 &&
             !beam(l).map(_.graph).contains(successor.graph) &&
             !beam(l + 1).map(_.graph).contains(successor.graph)
-          then beam(l + 1).append(successor)
+          then
+            beam(l + 1).append(successor)
+            if verbosity > 1 then
+              println(s"Added successor: ${successor.hashCode}")
 
         // prune the next layer
         if beam(l + 1).length > beamWidth then
+          if verbosity > 0 then
+            println(
+              s"Pruning layer ${l + 1} from ${beam(l + 1).length} nodes to $beamWidth nodes."
+            )
+
           // sort the layer before pruning
           // max size of beamWidth + numColors.length - 1
           beam(l + 1) = beam(l + 1).sorted(layerOrdering)
+
+          if verbosity > 1 then
+            println(
+              s"Pruned nodes: ${beam(l + 1).drop(beamWidth).map(_.graph.hashCode).mkString(", ")}"
+            )
 
           val fBestPruned = beam(l + 1)(beamWidth).f
           beam(l + 1) = beam(l + 1).take(beamWidth)
@@ -102,6 +189,9 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
           )
       }
     }
+
+    if verbosity > 0 then
+      println(s"Generated ${beam(l + 1).length} nodes for layer ${l + 1}")
 
     // go to next level if there's stuff to explore
     // backtrack if not
@@ -139,7 +229,7 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
       // get rid of the items that are currently in the beam (aka explored last time on this layer)
       beam.last.clear()
 
-      // update the stack top if there's still stuff to explore
+      // update the beam stack top if there's still stuff to explore
       if beamStack.nonEmpty then
         val currentTop = beamStack.pop()
         beamStack.push(
@@ -150,7 +240,17 @@ def beamStackSearch(heuristic: Graph => Int, beamWidth: Int)(
             currentTop._4
           )
         )
+
+      if verbosity > 0 then
+        println(
+          s"Backtracking to layer $l"
+        )
   }
+
+  if verbosity > 0 then
+    println("Beam Stack Search Complete")
+    println(s"Nodes Explored: $nodesExplored")
+    println(s"Best Solution: ${bestSolution.mkString(", ")}")
 
   (nodesExplored, bestSolution)
 }
