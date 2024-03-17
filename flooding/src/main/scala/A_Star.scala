@@ -9,7 +9,7 @@ import scala.collection.mutable
  * @param h_value the heuristic value of the graph
  * @author Evan Dreher
  */
-@unused case class State(graph: Graph, path: List[Int], h_value: Int) {
+@unused case class State(graph: Graph, path: List[Byte], h_value: Int) {
   /** Finds all possible actions that can be taken, and performs them on the graph generating a
    * new state for each action
    *
@@ -17,7 +17,7 @@ import scala.collection.mutable
    * @return A list of all successor states
    */
   def get_successors(heuristic: Graph => Int): List[State] = {
-    val actions = graph.adjacency(0).map(graph.labels(_)).distinct
+    val actions = graph.adjacency(0).map(graph.labels(_).toByte).distinct
     actions.map(action => State(graph pick action, action :: path, heuristic(graph pick action)))
   }
 }
@@ -29,7 +29,7 @@ import scala.collection.mutable
  * @param h_value the heuristic value of the graph resultant of performing all the actions on the initial graph
  * @author Evan Dreher
  */
-@unused case class State2(parent: Option[State2], action: Int, h_value: Int) {
+@unused case class State2(parent: Option[State2], action: Byte, h_value: Int) {
   /** Finds all possible actions that can be taken, and performs them on the graph generating a
    * new state for each action
    *
@@ -38,7 +38,7 @@ import scala.collection.mutable
    */
   def get_successors(heuristic: Graph => Int)(graph: Graph): List[State2] = {
     val g = g_prime(graph)
-    val actions = g.adjacency(0).map(g.labels(_)).distinct
+    val actions = g.adjacency(0).map(g.labels(_).toByte).distinct
     actions.map(action => State2(Some(this), action, heuristic(g pick action)))
   }
 
@@ -49,7 +49,7 @@ import scala.collection.mutable
    * @return the list of actions to get to this state
    * @author Evan Dreher
    */
-  @tailrec final def get_path(path: List[Int] = List.empty): List[Int] = {
+  @tailrec final def get_path(path: List[Byte] = List.empty): List[Byte] = {
     if parent.isEmpty then path else parent.get.get_path(action :: path)
   }
 
@@ -70,8 +70,8 @@ import scala.collection.mutable
  * @return An ordered pair of the number of nodes explored, and the optimal path found by the algorithm
  * @author Evan Dreher
  */
-def A_star(graph: Graph, verbose: Int = 0)(heuristic: Graph => Int): (Int, List[Int]) = {
-  var nodes_explored = 0
+def A_star(graph: Graph, verbose: Int = 0)(heuristic: Graph => Int): (Long, List[Byte]) = {
+  var nodes_explored: Long = 0L
   val open: mutable.PriorityQueue[State] = mutable.PriorityQueue()(
     Ordering.by((s: State) => s.path.length + s.h_value).reverse
   )
@@ -97,12 +97,13 @@ def A_star(graph: Graph, verbose: Int = 0)(heuristic: Graph => Int): (Int, List[
  * and compute the graph starting with the original when we need successors of a state
  *
  * @param graph     The starting graph
+ * @param verbose   0 for no output, 1 dequeueing and queueing, 2 for fringe size
  * @param heuristic The heuristic for A* to make choices based on
  * @return An ordered pair of the number of nodes explored, and the optimal path found by the algorithm
  * @author Evan Dreher
  */
-def A_star_2(graph: Graph, verbose: Int = 0)(heuristic: Graph => Int): (Int, List[Int]) = {
-  var nodes_explored = 0
+def A_star_2(graph: Graph, verbose: Int = 0)(heuristic: Graph => Int): (Long, List[Byte]) = {
+  var nodes_explored: Long = 0L
   val open: mutable.PriorityQueue[State2] = mutable.PriorityQueue()(
     Ordering.by((s: State2) => s.get_path().length + s.h_value).reverse
   )

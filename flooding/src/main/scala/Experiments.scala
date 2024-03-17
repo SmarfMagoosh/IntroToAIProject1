@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * @param solution       the list of actions found to get to a goal state
  * @author Evan Dreher
  */
-case class Result(nodes_explored: Int, runtime: Long, solution: List[Int])
+case class Result(nodes_explored: Long, runtime: Long, solution: List[Byte])
 
 /** Performs all experiments using both implementations of A* with both algorithms
  * Estimated runtime of approximately 35 hours in total
@@ -26,12 +26,11 @@ case class Result(nodes_explored: Int, runtime: Long, solution: List[Int])
  * @author Evan Dreher
  */
 def experiment_suite(
-                      size: (Int, Int) = (5, 25),
-                      colors: (Int, Int) = (4, 8),
-                      algorithms: (Int, Int) = (0, 1),
-                      heuristics: (Int, Int) = (0, 1),
-                      indices: (Int, Int) = (0, 4),
-                      verbose: Int = 0): Unit = {
+  size: (Int, Int) = (5, 25),
+  colors: (Int, Int) = (4, 8),
+  algorithms: (Int, Int) = (0, 1),
+  heuristics: (Int, Int) = (0, 1),
+  indices: (Int, Int) = (0, 4)): Unit = {
   // locate files to store results and add writers for them
   val files = for i <- 0 to 1; j <- 0 to 1 yield {
     new File(s"./samples/Backups/A_Star_${i + 1}_h${j + 1}.csv")
@@ -51,7 +50,7 @@ def experiment_suite(
     val writer = writers((2 * algorithm) + heuristic)
     // asynchronously run experiment
     val fr: Future[Result] = Future {
-      try run_experiment(size, colors, id, heuristic, algorithm, verbose)
+      try run_experiment(size, colors, id, heuristic, algorithm)
       catch case _ => Result(-1, -1L, List.empty) // out of memory
     }
     try {
@@ -77,19 +76,20 @@ def experiment_suite(
  * @return The result of the experiment including nodes explored, runtime, and solution
  * @author Evan Dreher
  */
-def run_experiment(size: Int, colors: Int, id: Int, heuristic: Int, algorithm: Int, verbose: Int): Result = {
+def run_experiment(size: Int, colors: Int, id: Int, heuristic: Int, algorithm: Int, verbose: Int = 0): Result = {
   // load up the graph from storage
   val g = get_experiment(size, colors, id)
   val h = heuristic match
     case 0 => h1
     case 1 => h2
   val algo = algorithm match
-    case 0 => A_star
-    case 1 => A_star_2
+    case 0 => A_star(g, verbose)
+    case 1 => A_star_2(g, verbose)
+    case 2 => beamStackSearch(g, 12, verbose.toByte)
   // time how long it takes to get a solution
   val s1 = System.currentTimeMillis()
   try {
-    val solution = algo(g, verbose)(h)
+    val solution = algo(h)
     Result(solution._1, System.currentTimeMillis() - s1, solution._2)
   } catch {
     // throw out of memory error to be caught elsewhere

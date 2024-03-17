@@ -75,25 +75,25 @@ case class BeamStackSearchState(
 
 /** The Beam Stack Search algorithm
   *
-  * @param heuristic
-  *   the heuristic function to use to calculate the h-cost of the successors
-  * @param beamWidth
-  *   the width of the beam
   * @param start
   *   the start graph
+  * @param beamWidth
+  *   the width of the beam
   * @param verbosity
   *   the verbosity level of the algorithm's output to the terminal (0 = no
   *   output, 1 = general progress output, 2 = detailed output)
+  * @param heuristic
+  *   the heuristic function to use to calculate the h-cost of the successors
   * @return
   *   a tuple containing the number of nodes explored and the best solution to
   *   the problem
   */
 def beamStackSearch(
-    heuristic: Graph => Int,
+    start: Graph,
     beamWidth: Int,
     verbosity: Byte = 0
 )(
-    start: Graph
+  heuristic: Graph => Int
 ): (Long, List[Byte]) = {
   if verbosity > 0 then println("Setting up Beam Stack Search")
 

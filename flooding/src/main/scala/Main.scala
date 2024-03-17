@@ -1,5 +1,7 @@
-@main def main(): Unit = {
-  println("Running Main Experiments")
-  val r = run_experiment(10, 5, 0, 1, 0, 2)
-  println(r.solution)
+@main def main(size: Int, colors: Int, id: Int, heuristic: Int, algorithm: Int, verbose: Int): Unit = {
+  val r = run_experiment(size, colors, id, heuristic, algorithm, verbose)
+  println(s"\n\nSolution found: ${r.solution}")
+  val g = get_experiment(size, colors, id)
+  println(s"Graph before actions: $g")
+  println(s"Proof of solution: ${r.solution.foldLeft(g)(_ pick _)}")
 }
