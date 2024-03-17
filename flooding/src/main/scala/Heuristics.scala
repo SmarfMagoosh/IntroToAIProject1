@@ -62,21 +62,3 @@ def h2(g: Graph): Int = {
   // finds the largest layer density
   paths_with_colors.foldLeft(-1)((c: Int, p: (Int, Int)) => c max (p._1 + p._2 - 1))
 }
-
-/** This greedy heuristic will try to absorb as many vertices into the blob as possible
- * at each iteration
- *
- * @param g The graph to evaluate
- * @return The number of remaining vertices in the graph
- * @author Evan Dreher
- */
-def g_h1(g: Graph): Int = g.vertices.end
-
-/** This greedy heuristic will try to have the blob touching as many vertices as possible
- * at each iteration
- *
- * @param g The graph to evaluate
- * @return The number of vertices the blob is adjacent to
- * @author Evan Dreher
- */
-def g_h2(g: Graph): Int = g.adjacency(0).length
