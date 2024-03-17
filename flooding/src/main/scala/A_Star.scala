@@ -70,7 +70,7 @@ import scala.collection.mutable
  * @return An ordered pair of the number of nodes explored, and the optimal path found by the algorithm
  * @author Evan Dreher
  */
-def A_star(graph: Graph)(heuristic: Graph => Int): (Int, List[Int]) = {
+def A_star(graph: Graph, verbose: Int = 0)(heuristic: Graph => Int): (Int, List[Int]) = {
   var nodes_explored = 0
   val open: mutable.PriorityQueue[State] = mutable.PriorityQueue()(
     Ordering.by((s: State) => s.path.length + s.h_value).reverse
@@ -79,11 +79,14 @@ def A_star(graph: Graph)(heuristic: Graph => Int): (Int, List[Int]) = {
   while (open.nonEmpty) {
     // get next state graph and return path if its a goal state
     val current = open.dequeue()
+    if verbose > 0 then println(s"Dequeued: \n${current.path}")
     nodes_explored = nodes_explored + 1
     if current.graph.isGoal then return (nodes_explored, current.path.reverse)
-
+    val successors = current.get_successors(heuristic)
+    if verbose > 0 then println(s"Queueing ${successors.length} successors")
     // enqueue all its successors if its not
-    open.enqueue(current.get_successors(heuristic): _*)
+    open.enqueue(successors: _*)
+    if verbose > 1 then println(s"Current fringe size: ${open.size}")
   }
   // default value that should never be returned but if I don't have it scala yells at me
   (Integer.MAX_VALUE, List())
@@ -98,7 +101,7 @@ def A_star(graph: Graph)(heuristic: Graph => Int): (Int, List[Int]) = {
  * @return An ordered pair of the number of nodes explored, and the optimal path found by the algorithm
  * @author Evan Dreher
  */
-def A_star_2(graph: Graph)(heuristic: Graph => Int): (Int, List[Int]) = {
+def A_star_2(graph: Graph, verbose: Int = 0)(heuristic: Graph => Int): (Int, List[Int]) = {
   var nodes_explored = 0
   val open: mutable.PriorityQueue[State2] = mutable.PriorityQueue()(
     Ordering.by((s: State2) => s.get_path().length + s.h_value).reverse
@@ -107,12 +110,16 @@ def A_star_2(graph: Graph)(heuristic: Graph => Int): (Int, List[Int]) = {
   while (open.nonEmpty) {
     // get next state graph and return it if its a goal
     val current = open.dequeue()
+    if verbose > 0 then println(s"Dequeued: \n${current.get_path()}")
     val current_graph = current.g_prime(graph)
     nodes_explored = nodes_explored + 1
     if current_graph.isGoal then return (nodes_explored, current.get_path())
 
     // if its not a goal, enqueue all its successors
-    open.enqueue(current.get_successors(heuristic)(graph): _*)
+    val successors = current.get_successors(heuristic)(graph)
+    if verbose > 0 then println(s"Queueing ${successors.length} successors")
+    open.enqueue(successors: _*)
+    if verbose > 1 then println(s"Current fringe size: ${open.size}")
   }
   // default value that should never be returned but if I don't have it scala yells at me
   (Integer.MAX_VALUE, List())
