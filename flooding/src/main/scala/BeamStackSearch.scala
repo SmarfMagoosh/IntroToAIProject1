@@ -1,7 +1,7 @@
 /*
  * Beam Stack Search
- * used pseudocode from https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf to implement parts of the algorithm.
- * Used normal beam stack search instead of DCBSS that the paper has pseudocode for.
+ * used pseudocode from https://cdn.aaai.org/ICAPS/2005/ICAPS05-010.pdf to implement parts of the algorithm,
+ * although I used normal beam stack search instead of DCBSS that the paper has pseudocode for.
  * @author Micah Nicodemus
  * */
 
@@ -109,11 +109,13 @@ def beamStackSearch(
   var bestSolution: List[Byte] = List()
   var l = 0
 
+  // initialize the first layer (the one with start node) on the beam stack
+  // and the first two layers of the beam
   val beamStack = Stack[BeamStackItem]((0, costUpperLimit, None, None))
   val beam = MutArray[MutArray[BeamStackSearchState]](
     MutArray(
       BeamStackSearchState(start, None, -1, heuristic(start))
-    ), // layer 0
+    ), // layer 0 (with start node)
     MutArray() // layer 1
   )
 
@@ -128,6 +130,7 @@ def beamStackSearch(
       )
 
     breakable {
+      // explore the nodes in the current layer
       for ((node, i) <- beam(l).zipWithIndex) {
         // check if goal state
         if node.graph.isGoal then
@@ -142,7 +145,9 @@ def beamStackSearch(
 
         // generate successors on next level
         for successor <- node.getSuccessors(heuristic)(l) do
-          // check if the successor is unexplored in the layer
+          // Check if the successor is unexplored in the layer.
+          // Solves the issue of repeatedly exploring the same nodes
+          // caused by having non-unique f-costs in a layer.
           val lastNotPrunedCost = beamStack.top._3
           val lastNotPrunedHashCode = beamStack.top._4
           val isUnexplored =
@@ -150,6 +155,7 @@ def beamStackSearch(
             then successor.graph.hashCode > lastNotPrunedHashCode.get
             else true
 
+          // add the successor to the next layer if it's currently a valid candidate
           if isUnexplored &&
             successor.f >= beamStack.top._1 && successor.f < beamStack.top._2 &&
             !beam(l).map(_.graph).contains(successor.graph) &&
@@ -175,9 +181,11 @@ def beamStackSearch(
               s"Pruned nodes: ${beam(l + 1).drop(beamWidth).map(_.graph.hashCode).mkString(", ")}"
             )
 
+          // chop chop
           val fBestPruned = beam(l + 1)(beamWidth).f
           beam(l + 1) = beam(l + 1).take(beamWidth)
 
+          // update the range we generated nodes in
           val currentTop = beamStack.pop()
           beamStack.push(
             (
@@ -220,7 +228,7 @@ def beamStackSearch(
       beam.append(MutArray())
       l += 1
     else
-      // Remove any other layers from the beamStack that aren't viable to generate nodes in.
+      // Remove any layers from the top of the beamStack that aren't viable to generate nodes in.
       while beamStack.nonEmpty && beamStack.top._2 >= costUpperLimit do
         beamStack.pop()
         beam.dropRightInPlace(1)
@@ -229,7 +237,7 @@ def beamStackSearch(
       // get rid of the items that are currently in the beam (aka explored last time on this layer)
       beam.last.clear()
 
-      // update the beam stack top if there's still stuff to explore
+      // shift the range of the beam stack top so we explore new nodes next time we backtrack to this layer
       if beamStack.nonEmpty then
         val currentTop = beamStack.pop()
         beamStack.push(
