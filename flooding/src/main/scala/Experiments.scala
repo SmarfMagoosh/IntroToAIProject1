@@ -1,6 +1,7 @@
 import java.util.Scanner
 import java.io.File
 import java.io.FileWriter
+import scala.annotation.unused
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.*
@@ -20,12 +21,12 @@ case class Result(nodes_explored: Long, runtime: Long, solution: List[Byte])
  *
  * @param size   optionally restrict the size of the experiments
  * @param colors optionally restrict the number of colors for the experiments
- * @param algorithms optionall restrict which algorithms are tested
+ * @param algorithms optionally restrict which algorithms are tested
  * @param heuristics optionally restrict which heuristics are used
  * @param indices   optionally restrict which experiment indices to try
  * @author Evan Dreher
  */
-def experiment_suite(
+@unused def experiment_suite(
   size: (Int, Int) = (5, 25),
   colors: (Int, Int) = (4, 8),
   algorithms: (Int, Int) = (0, 1),
@@ -84,8 +85,7 @@ def run_experiment(size: Int, colors: Int, id: Int, heuristic: Int, algorithm: I
     case 1 => h2
   val algo = algorithm match
     case 0 => A_star(g, verbose)
-    case 1 => A_star_2(g, verbose)
-    case 2 => beamStackSearch(g, 12, verbose.toByte)
+    case 1 => beamStackSearch(g, 12, verbose.toByte)
   // time how long it takes to get a solution
   val s1 = System.currentTimeMillis()
   try {

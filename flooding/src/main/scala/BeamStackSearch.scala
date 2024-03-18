@@ -6,10 +6,11 @@
  * */
 
 import scala.collection.mutable.{Stack, ArrayBuffer as MutArray}
-import scala.util.control.Breaks._
-import scala.annotation.tailrec
+import scala.util.control.Breaks.*
+import scala.annotation.{tailrec, unused}
+import scala.collection.mutable
 
-// (fmin, fmax, f-cost of last explored node, hashcode of last explored graph)
+// (f-value min, f-value max, f-cost of last explored node, hashcode of last explored graph)
 type BeamStackItem = (Int, Int, Option[Int], Option[Int])
 
 /** A state class for the Beam Stack algorithm
@@ -25,7 +26,7 @@ type BeamStackItem = (Int, Int, Option[Int], Option[Int])
   * @author
   *   Micah Nicodemus
   */
-case class BeamStackSearchState(
+@unused case class BeamStackSearchState(
     graph: Graph,
     parent: Option[BeamStackSearchState],
     actionTaken: Byte, // max 127 colors possible. -1 represents no action taken (will only be like that for start node)
@@ -111,7 +112,7 @@ def beamStackSearch(
 
   // initialize the first layer (the one with start node) on the beam stack
   // and the first two layers of the beam
-  val beamStack = Stack[BeamStackItem]((0, costUpperLimit, None, None))
+  val beamStack = mutable.Stack[BeamStackItem]((0, costUpperLimit, None, None))
   val beam = MutArray[MutArray[BeamStackSearchState]](
     MutArray(
       BeamStackSearchState(start, None, -1, heuristic(start))
